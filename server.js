@@ -1,11 +1,18 @@
 "use strict"
 
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const app = express();
 
-const authRoutes = require('./routes/auth.routes.js');
+const questionRoutes = require('./api/routes/question.routes.js');
+
+const connection = mongoose.connect(
+    // "mongodb+srv://aviraj:aviraj700@cluster0-4b0j9.mongodb.net/test?retryWrites=true&w=majority",
+    "mongodb+srv://aviraj:aviraj700@cluster0-4b0j9.mongodb.net/codetheft?retryWrites=true&w=majority",
+    { useUnifiedTopology: true, useNewUrlParser: true }
+).catch(error => console.error("mongo conn err",error.message));
 
 const serverPort = 4000;
 
@@ -14,13 +21,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(cors());
 
-authRoutes(app);
+questionRoutes(app);
 
-app.listen(serverPort, (err, res) => {
-    console.log({ err, res });
+app.listen(serverPort, () => {
     console.log(`Server running at ${serverPort}`);
 });
-
-module.exports = {
-    app
-};

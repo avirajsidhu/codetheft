@@ -2,10 +2,12 @@
 
 const {
     welcome,
-    evaluateInput
-} = require('../controllers/auth.controllers.js');
+    evaluateInput,
+    getQuestions
+} = require('../controllers/question.controllers.js');
 
 module.exports = (app) => {
     app.get('/welcome', welcome)
     app.post('/evaluateInput', evaluateInput)
+    app.get('/questions', getQuestions)
 };

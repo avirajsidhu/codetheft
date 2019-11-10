@@ -1,14 +1,45 @@
 "use strict"
+const { Question } = require('./../models/question.model');
+const UAParser = require('ua-parser-js');
+
+
+function getBrowserDetails(userAgent) {
+    const parser = new UAParser();
+    // const ua = req.headers['user-agent'];
+    const browserName = parser.setUA(userAgent).getBrowser().name;
+    const fullBrowserVersion = parser.setUA(userAgent).getBrowser().version;
+    const browserVersion = fullBrowserVersion ? fullBrowserVersion.split(".", 1).toString() : "";
+
+    // return {browserName, browserVersion, fullBrowserVersion};
+    return `${browserName} - ${fullBrowserVersion}`;
+}
 
 const welcome = (req, res) => {
     res.status(200).json({ message: "welcome to CodeTheft"});
 }
 
+// save to db
+const saveQuestion = (data) => {
+    console.log('data',data);
+    const q = new Question(data);
+    q.save()
+        .then(result => {
+            console.log("question saved",result || null);
+        })
+        .catch(err => {
+            console.log("err",err.message);
+        });
+}
+
 const evaluateInput = (req, res) => {
+    const browser = getBrowserDetails(req.headers['user-agent']) || {};
+    console.log("browser", browser);
+    // console.log("\n\n\n**** user-agent ", req.headers['user-agent']);
     var questionCode = req.body.questionCode;
     var inputValue = req.body.inputValue;
     var inputValueArray1 = req.body.inputValueArray1;
     var inputValueArray2 = req.body.inputValueArray2;
+    const ip = req.ip;
 
     switch (questionCode) {
         case 'q1': 
@@ -36,6 +67,7 @@ const evaluateInput = (req, res) => {
 
             if (result) {
                 console.log(`Question 1 selected. Input value = ${inputValue} : result = ${result}.` );
+                saveQuestion({ questionCode, input: inputValue, output: result, browser, ip});
                 res.status(200).send({ output: result});
             }
             else {
@@ -79,6 +111,7 @@ const evaluateInput = (req, res) => {
 
             if (result) {
                 console.log(`Question 2 selected. Input value array 1 = ${arr1}  array 2 = ${arr2} : result = ${result}.` );
+                saveQuestion({ questionCode, input: [arr1, arr2], output: result, browser, ip });
                 res.status(200).send({ output: result});
             }
 
@@ -108,6 +141,7 @@ const evaluateInput = (req, res) => {
 
             if (result) {
                 console.log(`Question 3 option compress selected. Input value = ${stringInput} : result = ${result}.`);
+                saveQuestion({ questionCode, input: stringInput, output: result, browser, ip });
                 res.status(200).send({ output: result });
             }
 
@@ -144,6 +178,7 @@ const evaluateInput = (req, res) => {
 
             if (result) {
                 console.log(`Question 3 option decompress selected. Input value = ${stringInput} : result = ${result}.`);
+                saveQuestion({ questionCode, input: stringInput, output: result, browser, ip });
                 res.status(200).send({ output: result });
             }
 
@@ -196,6 +231,7 @@ const evaluateInput = (req, res) => {
 
             if (result) {
                 console.log(`Question 4. Input value = ${stringInput} : result = ${result}.`);
+                saveQuestion({ questionCode, input: stringInput, output: result, browser, ip });
                 res.status(200).send({ output: result });
             }
 
@@ -212,7 +248,22 @@ const evaluateInput = (req, res) => {
     }
 }
 
+// fetch all questions
+const getQuestions = (req, res) => {
+    Question.find({})
+        .sort({ timestamp: -1 })
+        .then(data => {
+            res.status(200).send({data, message: "Success"});
+        })
+        .catch(err => {
+            console.log(err.message);
+            res.status(500).send({ err: err.message, message: "Failed to fetch data" });
+        });
+}
+
+
 module.exports = {
     welcome,
-    evaluateInput
+    evaluateInput,
+    getQuestions
 };
