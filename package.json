@@ -16,6 +16,6 @@
     "express": "^4.17.1",
     "mongoose": "^5.7.9",
     "nodemon": "^1.19.4",
-    "ua-parser-js": "^0.7.20"
+    "ua-parser-js": "^0.7.24"
   }
 }
